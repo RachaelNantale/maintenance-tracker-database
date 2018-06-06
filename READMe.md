@@ -1,6 +1,5 @@
 
-[![Build Status](https://travis-ci.org/RachaelNantale/Flask-api-restful.svg?branch=file-structure)]
-(https://travis-ci.org/RachaelNantale/Flask-api-restful)
+[![Build Status](https://travis-ci.org/RachaelNantale/maintenance-tracker-database.svg?branch=authentication)](https://travis-ci.org/RachaelNantale/maintenance-tracker-database)
 [![Coverage Status](https://coveralls.io/repos/github/RachaelNantale/Flask-api-restful/badge.svg?branch=testing-files)](https://coveralls.io/github/RachaelNantale/Flask-api-restful?branch=testing-files)
 
 ## Project Link
