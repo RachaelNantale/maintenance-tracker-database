@@ -1,13 +1,13 @@
-#create class for
+# create class for
 class RequestModel:
     def __init__(self, _id, _request, _type):
         self._request = _request
         self._type = _type
         self._id = _id
-    
+
     def get_id(self):
         return self._id
-    
+
     def get_request(self):
         return self._request
 
@@ -15,22 +15,24 @@ class RequestModel:
         return self._type
 
     def get_dict(self):
-        return{'_id':self._id,
-        '_type':self._type,
-        '_request':self._request}
+        return {'_id': self._id,
+                '_type': self._type,
+                '_request': self._request}
 
 
 maintance_requests = []
-#create class for users
+# create class for users
+
+
 class UserModel:
     def __init__(self, _id, _username, _password):
         self._id = _id
         self._username = _username
         self._password = _password
-    
+
     def get_id(self):
         return self._id
-    
+
     def get_username(self):
         return self._username
 
@@ -38,13 +40,9 @@ class UserModel:
         return self._password
 
     def get_dict(self):
-        return{'_id':self._id,
-        '_username':self._username,
-        '_password':self._password}
-
-
-
-
+        return{'_id': self._id,
+               '_username': self._username,
+               '_password': self._password}
 
 
 user_list = []
