@@ -1,36 +1,32 @@
 from flask import Flask, request, jsonify, abort, Blueprint, make_response
 import json
 from api.models import RequestModel, UserModel
-from api.models import maintance_requests, user_list
 import jwt
 import datetime
 import uuid
 from functools import wraps
-from dbHandler import MyDatabase
+from api.dbHandler import MyDatabase
 import os
 # from flask_bcrpyt import Bcrpyt
 
 app = Flask(__name__)
 
 
-# create a token header
-
+# create a database hndler
+db = MyDatabase()
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
-        usermodel = UserModel('1', 'rachael', '123abc')
-
         if 'Authorization' in request.headers:
             token = request.headers['Authorization']
-        if not token:
+        if token is None:
             return jsonify({'token': token,  'message': 'Token is missing!!!!'}), 401
 
         try:
-            token_split = token.split(".")
-            data = jwt.decode(token, os.getenv('SECRET_KEY'))
-            current_user = usermodel.get_id()
+            data = jwt.decode(token, "os.getenv('SECRET_KEY')")
+            current_user = data['id']
 
         except jwt.ExpiredSignatureError:
             return jsonify({'message': 'Sorry Token doesnt exist'}), 401
@@ -42,33 +38,151 @@ def token_required(f):
 
 
 # create a new request
-@app.route('/api/v1/users/requests', methods=['POST'])
-def create_request():
-    """
-                    This endpoint creates a maintance request ticket
-    """
+@app.route('/api/v1/auth/signup', methods=['POST'])
+def create_user():
     data = request.get_json()
+    username = data.get('username',None)
+    password = data.get('password',None)
+    email = data.get('email',None)
 
-    _requests = data.get('requests'),
-    if not _requests or _requests == '':
-        return jsonify({'message': 'Missing information. Please fill in'}), 400
-    _types = data.get('types')
-    if _types == '':
-        return jsonify({'message': 'Missing infor Please fill in'}), 400
+    if username is not None and password is not None and email is not None:
+        _id=str(uuid.uuid1())
+        # Generate token
+        payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
+                'iat': datetime.datetime.utcnow(),
+                'id': _id
+            }
+        token = jwt.encode(payload, "os.getenv('SECRET_KEY')").decode('utf-8')
+        
+        db.create_user(_id,username,password,email)
+        return jsonify({'message':"User created sucessfully",'status':True, 'token':token}),201
+    else:
+        return jsonify({'message':"Please fill in all fields",'status':False}),401
 
-    try:
-        if isinstance(data['requests'], str) and isinstance(data['type'], str):
-            id = len(maintance_requests)
-            id += 1
-            Request = RequestModel(id, data['requests'], data['type'])
-            maintance_requests.append(Request)
-        return jsonify(Request.get_dict()), 201
-    # Add an Attribut error to catch the errors
-    except AttributeError:
-        return jsonify({
-            'status': 'FAIL',
-            'message': 'Failed to create a request. Invalid data'
-        }), 400
+@app.route('/api/v1/auth/login/', methods=['POST'])
+def user_login():
+    data = request.get_json()
+    username = data['username']
+    password=data['password']
+
+    if username is not None and password is not None:
+        _id = db.user_login(username)
+        if _id is not None:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
+                'iat': datetime.datetime.utcnow(),
+                'id': _id
+            }
+
+            token = jwt.encode(payload, "os.getenv('SECRET_KEY')")
+
+            return jsonify({'message':'Login Succesfull', 'Status':True,'token': token.decode('utf-8')}), 201
+        else:
+            return jsonify({'message':'User doesnot exist', 'Status':False}), 401
+
+    else:
+        return jsonify({'message':'Login Failed', 'Status':False}), 401
+
+
+
+
+@app.route('/api/v1/users/requests', methods=['GET'])
+@token_required
+def fetch_all_requests(current_user):
+    data = request.get_json
+
+    result = db.fetch_all_requests_for_a_user(current_user[0])
+    requests=[]
+    x,y=0,0
+    for list_item in result:
+
+        requests.append({'id':list_item[0]})
+    print(requests)
+
+
+
+
+    # if not current_user:
+    #     return jsonify({'message: User can not collect all requests'})
+    # id = data
+    # db = MyDatabase()
+    # db.fetch_all_requests(
+        
+
+    # return jsonify({
+    #     'status': 'OK',
+    #     'message': 'here are all your requests',
+    #     'request_number': 
+
+    #     'requests': requestss.get_dict()
+
+    # }), 200
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # create a new request
+# @app.route('/api/v1/users/requests', methods=['POST'])
+# @token_required
+# def create_request(current_user):
+   
+#     """
+#                     This endpoint creates a maintance request ticket
+#     """
+#     data = request.get_json()
+
+#     _requests = data.get('requests'),
+#     if not _requests or _requests == '':
+#         return jsonify({'message': 'Missing information. Please fill in'}), 400
+#     _types = data.get('types')
+#     if _types == '':
+#         return jsonify({'message': 'Missing infor Please fill in'}), 400
+
+
+#     id = int(data['id'])
+
+#     requests = data['requests']
+#     mtype = data['type']
+#     status = data['status']
+
+
+#     db.create_request("INSERT INTO RequestTable VALUES({},'{}','{}','{}')".format(
+#         id, requests, mtype, status))
+
+    
+#     return jsonify({'message':"Request Created",'success':True}), 201
+    
+#     return jsonify({
+#         'status': 'FAIL',
+#         'message': 'Failed to create a request. Invalid data'
+#         }), 400
 
 # create an api endpoint for modifying requests
 
@@ -92,49 +206,22 @@ def modify_request(current_user, id):
     if not _types or _types == ' ':
         return jsonify({'message': 'Missing infor Please fill in'}), 400
 
-    # try:
-    if isinstance(data['requests'], str) and isinstance(data['type'], str):
+    id = data['id']
+    requests = data['requests']
+    mtype = data['type']
 
-        counter = 0
-    for item in maintance_requests:
-        if id == item['_id']:
-            maintance_requests[counter] = counter
-            return
-            # maintance_requests[counter]
-        counter = counter + 1
-        requestss = RequestModel(id, data['requests'], data['type'])
-        result = requestss.get_dict()
-        return jsonify({
+    db = MyDatabase()
+    db.modify_request(
+        "UPDATE requests SET requests='{}', type='{}'  WHERE id={} ".format(requests, mtype, id))
+    return jsonify({
             "message": "Request Updated"
         }), 201
-# except AttributeError, IndexError):
-    return jsonify({
-        'status': 'FAIL',
-        'message': 'Failed to modify a request. Invalid data'
-    }), 400
 
+    
 # create API endpoints for fetching all requests
 
 
-@app.route('/api/v1/users/requests', methods=['GET'])
-@token_required
-def fetch_all_requests(current_user):
-    data = request.get_json
 
-    if not current_user:
-        return jsonify({'message: User can not collect all requests'})
-
-    count = len(maintance_requests)
-    requestss = RequestModel(id, data['requests'], data['type'])
-
-    return jsonify({
-        'status': 'OK',
-        'message': 'here are all your requests',
-        'request_number': count,
-
-        'requests': requestss.get_dict()
-
-    }), 200
 
 # create API endpoints for fecthind a single id
 
@@ -161,29 +248,6 @@ def fetch_request_id(current_user, requestID):
         'request': fetch_requests
     })
 
-
-@app.route('/auth/login/', methods=['POST'])
-def user_login():
-    auth = request.json
-    usermodel = UserModel('1', 'rachael', '123abc')
-
-    if not auth or not auth['username'] or not auth['password']:
-        return make_response('could not verifys', 401, {'WWW-Aunthenticate': 'Basic realm="Login required"'})
-
-    # user = User.filter_by(name=auth.username).first()
-
-    if not usermodel:
-        return jsonify({'message': 'No user Found'})
-
-    if (usermodel.get_password, auth['password']):
-        payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30),
-            'iat': datetime.datetime.utcnow(),
-            'sub': usermodel.get_id()
-        }
-        token = jwt.encode(payload, os.getenv('SECRET_KEY'))
-        return jsonify({'token': token.decode('utf-8')}), 201
-    return make_response('Could not verify', 401, {'WWW-Aunthenticate': 'Basic realm="Login required"'})
 
 
 @app.route('/api/v1/requests/<requestId>/approve', methods=['PUT'])
