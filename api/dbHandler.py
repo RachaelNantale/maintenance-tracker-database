@@ -1,6 +1,6 @@
 import psycopg2
 from pprint import pprint
-import uuid
+
 
 
 class MyDatabase():
@@ -24,14 +24,14 @@ class MyDatabase():
         """
         create a table for users
         """
-        create_user_table_cmd = " CREATE TABLE IF NOT EXISTS UserTable(id TEXT PRIMARY KEY NOT NULL,username varchar(20) NOT NULL, Password varchar(10), status boolean, email varchar (30) NOT NULL);"
+        create_user_table_cmd = " CREATE TABLE IF NOT EXISTS UserTable(id TEXT PRIMARY KEY NOT NULL,username varchar(200) NOT NULL, Password varchar(100), status boolean, email varchar (30) NOT NULL);"
         self.cur.execute(create_user_table_cmd)
 
     def create_request_table(self):
         """
         Create a table for requests
         """
-        create_request_table_cmd = "CREATE TABLE IF NOT EXISTS RequestTable(id TEXT PRIMARY KEY NOT NULL, requests TEXT, Type varchar(20), status varchar(20) NOT NULL,user_id TEXT);"
+        create_request_table_cmd = "CREATE TABLE IF NOT EXISTS RequestTable(id TEXT PRIMARY KEY NOT NULL, requests TEXT, Type varchar(20), status varchar(20) NOT NULL);"
         self.cur.execute(create_request_table_cmd)
 
     def create_user(self, _id, username, password, email, admin=False):
@@ -72,16 +72,16 @@ class MyDatabase():
         for request in requests:
             pprint(request)
 
-    def fetch_one_users(self):
-        self.cur.execute("SELECT * FROM users")
-        users = self.cur.fetchone()
-        return users
-        for username in users:
-            pprint(username)
+    def fetch_one_user(self):
+         """
+        Fetch one request
+        """
+        # self.cur.execute("SELECT * FROM UserTable where username = {}".format(username))
+        # users = self.cur.fetchone()
+        # return users
+        # for username in users:
+        #     pprint(username)
 
-    def delete_request(self, id):
-        self.cur.execute("DELETE FROM requests WHERE id = {} ".format(id))
-        return True
 
     def close(self):
         self.cur.close()
