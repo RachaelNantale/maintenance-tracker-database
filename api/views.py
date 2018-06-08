@@ -86,81 +86,6 @@ def user_login():
 	else:
 		return jsonify({'message':'Login Failed', 'Status':False}), 401
 
-
-
-# # Fetch all requests of the logged in user
-# @app.route('/api/v1/users/requests', methods=['GET'])
-# @token_required
-# def fetch_all_requests(current_user):
-#    requests=[]
-#    if result is not None:
-# 	   	for req in result:
-# 	   		requests.append(UserRequest(req[1],req[2],req[3],req[5],req[4],req[0]).get_dict())
-# 	   		return jsonify(requests)
-# 	   		return jsonify(no_requests)
-# 	else:
-# 		return jsonify({'message': 'here are your requests'}),200
-	
-
-
-
-	# if not current_user:
-	#     return jsonify({'message: User can not collect all requests'})
-	# id = data
-	# db = MyDatabase()
-	# db.fetch_all_requests(
-		
-
-	# return jsonify({
-	#     'status': 'OK',
-	#     'message': 'here are all your requests',
-	#     'request_number': 
-
-	#     'requests': requestss.get_dict()
-
-	# }), 200
-
-#Fwtch single  request that belongs to a ;ogged in user
-# @app.route('/api/v1/users/requests/<requestID>/', methods=['GET'])
-# @token_required
-# def fetch_request_id(current_user, requestID):
-# 	fetch_requests = []
-# 	if result is not None:
-# 				user = User(result[0],result[1],result[2],result[3],"",result[5])
-# 				user.setPassword(result[4])
-# 				return user
-# 	else:
-# 		return None 
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # create a new request
 @app.route('/api/v1/users/requests', methods=['POST'])
 @token_required
@@ -184,11 +109,11 @@ def create_request(current_user):
 	requests = data['requests']
 	mtype = data['type']
 	status = data['status']
-	user_id =int(data['user_id'])
+	user_id =current_user
 
 
-	db.create_request("INSERT INTO RequestTable VALUES({},'{}','{}','{}',{})".format(
-		id, requests, mtype, status,user_id))
+	db.create_request("INSERT INTO RequestTable VALUES({},'{}','{}','{}','{}')".format(
+		id, requests, mtype, status,user_id[0]))
 
 	
 	return jsonify({'message':"Request Created",'success':True}), 201
@@ -210,25 +135,49 @@ def modify_request(current_user, _id):
 	"""
 	This endpoint modifies a request
 	"""
-	# _requests = data.get('requests'),
-	# if not _requests or _requests == ' ':
-	# 	return jsonify({'message': 'Missing information. Please fill in'}), 400
-	# _types = data.get('type'),
-	# if not _types or _types == ' ':
-	# 	return jsonify({'message': 'Missing infor Please fill in'}), 400
+	
+	mid = data.get('_id',None)
+	_id = mid
+	requests = data.get('requests',None)
+	mtype = data.get('Type',None)
 
-	_id = int(data['_id'])
-	requests = data['requests']
-	mtype = data['Type']
+	if _id is not None and requests is not None and mtype is not None:
+		db = MyDatabase()
+		db.modify_request("UPDATE RequestTable SET requests='{}', Type='{}'  WHERE id='{}' ".format(requests,mtype, _id))
+		return jsonify({
+				"message": "Request Updated", "status":"OK"
+			}), 201
+	else:
+		return jsonify({"message":"All fields  are required"}),400
+
+
+
+# Fetch all requests of the logged in user
+@app.route('/api/v1/users/requests', methods=['GET'])
+@token_required
+def fetch_all_requests(current_user):
+	result = db.fetch_all_requests_for_a_user(current_user)
+	if result is not None:
+	 	return jsonify(result)
+	else:
+		return jsonify({'message': 'You have no requests'}),200
 	
 
-	db = MyDatabase()
-	db.modify_request("UPDATE RequestTable SET requests='{}', Type='{}'  WHERE id={} ".format(requests,mtype, _id))
-	return jsonify({
-			"message": "Request Updated"
-		}), 201
+
 
 	
+
+@app.route('/api/v1/users/requests/<requestID>/', methods=['GET'])
+@token_required
+def fetch_request_id(current_user, requestID):
+	result = db.fetch_one_user(requestID)
+	if result is not None:
+		
+		return jsonify(result)
+	else:
+		return jsonify({'message': 'You have no requests'}),200 
+	
+
 
 
 

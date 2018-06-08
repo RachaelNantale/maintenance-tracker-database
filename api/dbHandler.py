@@ -31,7 +31,7 @@ class MyDatabase():
         """
         Create a table for requests
         """
-        create_request_table_cmd = "CREATE TABLE IF NOT EXISTS RequestTable(id TEXT PRIMARY KEY NOT NULL, requests TEXT, Type varchar(20), status varchar(20) NOT NULL);"
+        create_request_table_cmd = "CREATE TABLE IF NOT EXISTS RequestTable(id TEXT PRIMARY KEY NOT NULL, requests TEXT, Type varchar(20), status varchar(20) NOT NULL, user_id TEXT);"
         self.cur.execute(create_request_table_cmd)
 
     def create_user(self, _id, username, password, email, admin=False):
@@ -66,21 +66,29 @@ class MyDatabase():
         """
         Fetch all request
         """
-        self.cur.execute("SELECT * FROM RequestTable WHERE id = {}".format(_id))
+        self.cur.execute("SELECT * FROM RequestTable WHERE user_id = '{}' ".format(_id[0]))
         requests = self.cur.fetchall()
-        return requests
+        my_requests = []
         for request in requests:
-            pprint(request)
+            my_dict = {}
+            my_dict['id'] = request[0]
+            my_dict['type'] = request[1]
+            my_dict['status'] = request[2]
+            my_requests.append(my_dict)
 
-    def fetch_one_user(self):
-         """
-        Fetch one request
-        """
-        # self.cur.execute("SELECT * FROM UserTable where username = {}".format(username))
-        # users = self.cur.fetchone()
-        # return users
-        # for username in users:
-        #     pprint(username)
+        return requests
+        
+
+    def fetch_one_user(self, request_id):
+        self.cur.execute("SELECT * FROM RequestTable WHERE id = '{}' ".format(request_id[0]))
+        request = self.cur.fetchone()
+        
+        
+        my_dict = {}
+        my_dict['id'] = request[0]
+        my_dict['type'] = request[1]
+        my_dict['status'] = request[2]
+        return my_dict
 
 
     def close(self):

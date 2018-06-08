@@ -35,18 +35,28 @@ class TestClass(unittest.TestCase):
 
     # # #modify a request
     def test_modify_request(self):
-        post_data = (
-            {
-                'requests': '#123',
-                'type': 'this is a request'
-            }
-        )
-        response = self.client().put('/api/v1/users/requests/1', data=json.dumps(dict(post_data)),
-                                     content_type='application/json')
+        response = self.client().post(
+            '/api/v1/auth/login/',
+            content_type='application/json',
+            data=json.dumps((dict(
+                            email='rachael@gmail.com',
+                            password='123abc')))
+            )
         reply = json.loads(response.data.decode())
-        self.assertEqual(reply['status'], 'OK')
-        self.assertEqual(reply['message'], 'A Request has been modified')
-        self.assertEqual(response.status_code, 200)
+        token = reply['token']
+        response_2 = self.client().put(
+            '/api/v1/users/requests/1',
+            content_type='application/json',
+            data=json.dumps(post_data = (
+                {
+                    'requests': '#123',
+                    'type': 'this is a request'
+                }),
+            headers={'Authorization': token}))
+        _reply = json.loads(response_2.data.decode())
+        #self.assertEqual(reply['status'], 'OK')
+        self.assertEqual(_reply['message'], 'A Request has been modified')
+        self.assertEqual(_response.status_code, 200)
 
     # # # # #fetch all requests
 
