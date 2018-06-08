@@ -21,3 +21,18 @@ This is still a stricly online application. work still in progress on getting a 
 * Planning on  implementing the core functionality later
 
 
+## Requirements
+> pip install -r requirements.txt
+
+## The API Endpoints
+
+| End Point  | Description |
+| ------------- | ------------- |
+| POST /auth/signup  | Register a user  |
+| POST /auth/login  | Login a user  |
+| GET /users/requests | Fetch all the requests of a logged in user |
+| GET /users/requests/<requestId>/ |  Fetch a request that belongs to a logged in user |
+| POST /users/requests |Create a request |
+| PUT /users/requests/<requestId> |Modify a request |
+| Get /requests/   | Fetch all the requests. Available to only admin |
+
